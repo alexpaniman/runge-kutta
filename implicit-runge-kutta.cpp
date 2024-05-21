@@ -1,7 +1,6 @@
 #include <glm/fwd.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 
-#include <functional>
 #include <initializer_list>
 #include <vector>
 #include <iostream>
@@ -187,7 +186,7 @@ point<vec_type> runge_kutta_step(auto &&f, point<vec_type> nth, double step_size
 
         auto k_eq = [&](auto k) -> vec_type {
             vec_type f_y {}; // TODO: is it 0?
-            for (int j = 0; j < i; ++ j)
+            for (size_t j = 0; j < i; ++ j)
                 f_y += a[i][j] * ks[j];
 
             f_y += a[i][i] * k; // TODO: ?
@@ -240,34 +239,24 @@ std::vector<point<vec_type>> runge_kutta(auto &&f, point<vec_type> init, double 
 
 int main() {
     dmatrix a = {
-        {     1/   4.,           0,           0,          0,     0 },
-        {     1/   2.,     1/   4.,           0,          0,     0 },
-        {    17/  50.,    -1/  25.,        1/4.,          0,     0 },
-        {   371/ 1360.,   -137/2720.,   15/544.,      -1/4.,     0 },
-        {   25 / 24.,     -49/48.,     -125/16.,    -85/12., -1/4. },
+        { 1  /   4.,   0   /   1.,   0   /  1.,   0  / 1.,   0 /1. },
+        { 1  /   2.,   1   /   4.,   0   /  1.,   0  / 1.,   0 /1. },
+        { 17 /  50.,   -1  /  25.,   1   /  4.,   0  / 1.,   0 /1. },
+        { 371/1360.,   -137/2720.,   15  /544.,   -1 / 4.,   0 /1. },
+        { 25 /  24.,   -49 /  48.,   -125/ 16.,   -85/12.,   -1/4. },
     };
 
-    dvector b = { 25/244., -49/48., 125/16., -85/12., 1/4.};
-    dvector c = {       1/4.,        3/4.,       11/20.,      1/2., 1 };
+    dvector b = { 25/244., -49/48., 125/16., -85/12., 1/4. };
+    dvector c = { 1 /  4., 3  / 4., 11 /20., 1  / 2., 1/1. };
 
-
-    point init = { 0, glm::dvec4 { 1.76 * pow(10, -3), 0, 0, 0 } };
-    auto f = [](auto t, auto y) {
-        double A = 7.89 * pow(10, -10);
-        double B = 1.1  * pow(10,  -7);
-        double C = 1.13 * pow(10,   3);
-        double M =        pow(10,   6);
-        return glm::dvec4 {
-            -A * y[0] - B * y[0] * y[2],
-             A * y[0]                   - M * C * y[1] * y[2],
-             A * y[0] - B * y[0] * y[2] - M * C * y[1] * y[2] + C * y[3],
-                        B * y[0] * y[2]                       - C * y[3]
-        };
+    point init = { 0, glm::dvec2 { 2, 0 } };
+    auto f = []([[maybe_unused]] auto t, auto y) {
+        return glm::dvec2 { y[1], 5*(1 - y[0]*y[0])*y[1] - y[0] };
     };
 
 
-    const int points_to_plot = 5000;
-    auto points = runge_kutta(f, init, .00001, 1000, a, b, c, points_to_plot);
+    const int points_to_plot = 100000;
+    auto points = runge_kutta(f, init, .0001, 1000, a, b, c, points_to_plot);
 
 
     for (auto &&point: points) {
