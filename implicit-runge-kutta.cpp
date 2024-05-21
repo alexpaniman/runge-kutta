@@ -1,3 +1,4 @@
+#include <glm/fwd.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <functional>
@@ -145,7 +146,9 @@ vec_type solve_newtons(auto &&f, vec_type init, double precision) {
 
     const int max_iter = 10000;
     for (int i = 0; i < max_iter; ++ i) {
-        auto jac = ::jacobian<glm::dmat4x4>(f, previous);
+        using jacobin_result = glm::mat<init.length(), init.length(), double, glm::defaultp>;
+        auto jac = ::jacobian<jacobin_result>(f, previous);
+
         auto inverse_jacobian = glm::inverse(jac);
         current = previous - inverse_jacobian * f(previous);
 
