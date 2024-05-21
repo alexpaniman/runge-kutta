@@ -28,6 +28,7 @@
 
       buildInputs = with pkgs; [
         glm
+        fmt
       ];
 
       cmakeFlags = [ "-DCMAKE_BUILD_TYPE=Release" ];

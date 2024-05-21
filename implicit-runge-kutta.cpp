@@ -10,6 +10,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include <fmt/format.h>
+
 template <typename underlying_linear_container>
 class proxy2d {
 public:
@@ -220,6 +222,7 @@ std::vector<point<vec_type>> runge_kutta(auto &&f, point<vec_type> init, double 
         if (i % 1000 == 0)
             std::cerr << "Progress " << std::fixed << std::setprecision(2)
                       << (i / (double) num_steps) * 100 << "% " << point_index << "\r";
+            fmt::print(stderr, "Progress {:.2f}% \r", (i / (double) num_steps) * 100);
 
         nth = runge_kutta_step(f, nth, step_size, a, b, c);
         if (i % saved_point_frequency == 0)
@@ -267,11 +270,12 @@ int main() {
 
 
     for (auto &&point: points) {
-        std::cout << point.t << " ";
+        std::string_view format = "{:>27.20f} ";
 
+        fmt::vprint(format, fmt::make_format_args(point.t));
         for (int i = 0; i < point.y.length(); ++ i)
-            std::cout << point.y[i] << " ";
+            fmt::vprint(format, fmt::make_format_args(point.y[i]));
 
-        std::cout << "\n";
+        fmt::print("\n");
     }
 }

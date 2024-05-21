@@ -38,6 +38,7 @@ endif ()
 
 # ==> Add project's core 
 find_package(glm REQUIRED)
+find_package(fmt REQUIRED)
 
 add_executable(implicit-runge-kutta implicit-runge-kutta.cpp)
-target_link_libraries(implicit-runge-kutta glm::glm)
+target_link_libraries(implicit-runge-kutta glm::glm fmt)
