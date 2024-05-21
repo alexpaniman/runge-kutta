@@ -42,3 +42,6 @@ find_package(fmt REQUIRED)
 
 add_executable(implicit-runge-kutta implicit-runge-kutta.cpp)
 target_link_libraries(implicit-runge-kutta glm::glm fmt)
+
+add_executable(explicit-runge-kutta explicit-runge-kutta.cpp)
+target_link_libraries(explicit-runge-kutta glm::glm fmt)
