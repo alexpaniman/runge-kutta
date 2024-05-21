@@ -1,0 +1,51 @@
+* Explicit and implicit Runge Kutta
+
+I'm using 4th order method:
+
+|--------------------+---------------------+-------------------+------------------+----------------|
+| $\frac{1}{4}$      | $\frac{0}{1}$       | $\frac{0}{1}$     | $\frac{0}{1}$    | $\frac{0}{1}$  |
+| $\frac{1}{2}$      | $\frac{1}{4}$       | $\frac{0}{1}$     | $\frac{0}{1}$    | $\frac{0}{1}$  |
+| $\frac{17}{50}$    | $-\frac{1}{25}$     | $\frac{1}{4}$     | $\frac{0}{1}$    | $\frac{0}{1}$  |
+| $\frac{371}{1360}$ | $-\frac{137}{2720}$ | $\frac{15}{544}$  | $-\frac{1}{4}$   | $\frac{0}{1}$  |
+| $\frac{25}{24}$    | $-\frac{49}{48}$    | $-\frac{125}{16}$ | $-\frac{85}{12}$ | $-\frac{1}{4}$ |
+|--------------------+---------------------+-------------------+------------------+----------------|
+| $\frac{25}{244}$   | $-\frac{49}{48}$    | $\frac{125}{16}$  | $-\frac{85}{12}$ | $\frac{1}{4}$  |
+| $\frac{1}{4}$      | $\frac{3}{4}$       | $\frac{11}{20}$   | $\frac{1}{2}$    | $\frac{1}{1}$  |
+|--------------------+---------------------+-------------------+------------------+----------------|
+
+
+Example function: $\vec{f}(t, \vec{y}) = \left(y_1, \quad 5\cdot\left(1 - y_0^2\right)\cdot y_1 - y_0\right)$, initial point: $(2, 0)$, $t_\text{end} = 1000$, $h = .00001$:
+
+** With explicit method
+
+[[file:imgs/explicit-0.png]]
+[[file:imgs/explicit-1.png]]
+
+** With implicit method
+
+[[file:imgs/implicit-0.png]]
+[[file:imgs/implicit-1.png]]
+
+
+** Building and running
+You need to have =fmt= and =glm= libraries installed (so that =find_package= finds them). Also for building, you will need =clang=, =cmake= and =ninja-build=.
+
+#+begin_src sh
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -G Ninja -DFORCE_COLORED_OUTPUT=ON
+cmake --build build
+
+# Two executable files will be compiled:
+# ./build/implicit-runge-kutta and ./build/explicit-runge-kutta
+
+# Then you can run and look at the results:
+./build/implicit-runge-kutta | tee implicit-data
+python plot.py implicit-data # Will open window with plots
+
+./build/explicit-runge-kutta | tee explicit-data
+python plot.py explicit-data # Will open window with plots
+#+end_src
+
+You can also install all the dependencies with nix:
+#+begin_src sh
+nix develop
+#+end_src
