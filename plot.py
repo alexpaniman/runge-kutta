@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
+import sys
 
-file = open("data", "r")
+file = open(sys.argv[1], "r")
 
 points = [ point.strip().split(' ') for point in file.read().strip().split('\n') ]
 points = [ tuple([ float(coord) for coord in point ]) for point in points ]
