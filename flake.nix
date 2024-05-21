@@ -21,6 +21,8 @@
 
         cmake
         ninja
+
+        pyright
         (python3.withPackages (python-pkgs: [
           python-pkgs.matplotlib
         ]))
