@@ -46,3 +46,16 @@ std::vector<point<vec_type>> runge_kutta(auto &&runge_step,
 
     return y;
 }
+
+
+void print_points(const auto &points) {
+    for (auto &&point: points) {
+        std::string_view format = "{:>27.20f} ";
+
+        fmt::vprint(format, fmt::make_format_args(point.t));
+        for (int i = 0; i < point.y.length(); ++ i)
+            fmt::vprint(format, fmt::make_format_args(point.y[i]));
+
+        fmt::print("\n");
+    }
+}

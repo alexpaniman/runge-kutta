@@ -116,14 +116,5 @@ int main() {
                               init, .0001, 1000,
                               a, b, c, points_to_plot);
 
-
-    for (auto &&point: points) {
-        std::string_view format = "{:>27.20f} ";
-
-        fmt::vprint(format, fmt::make_format_args(point.t));
-        for (int i = 0; i < point.y.length(); ++ i)
-            fmt::vprint(format, fmt::make_format_args(point.y[i]));
-
-        fmt::print("\n");
-    }
+    print_points(points);
 }

@@ -61,12 +61,5 @@ int main() {
                               a, b, c, points_to_plot);
 
 
-    for (auto &&point: points) {
-        std::cout << point.t << " ";
-
-        for (int i = 0; i < point.y.length(); ++ i)
-            std::cout << point.y[i] << " ";
-
-        std::cout << "\n";
-    }
+    print_points(points);
 }
