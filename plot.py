@@ -12,8 +12,8 @@ num_ys = len(points[0]) - 1
 plots = []
 
 def plot_all():
-    fig, axs = plt.subplots(len(plots))
-    if num_ys == 1:
+    _, axs = plt.subplots(len(plots))
+    if len(plots) == 1:
         axs = [axs]
 
     for (i, (xs, ys, title)) in enumerate(plots):
