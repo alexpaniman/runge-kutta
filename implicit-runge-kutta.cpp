@@ -217,19 +217,17 @@ std::vector<point<vec_type>> runge_kutta(auto &&f, point<vec_type> init, double 
     const int saved_point_frequency = num_steps / num_points_to_save;
     assert(saved_point_frequency > 0);
 
-    std::vector<point<vec_type>> y(num_steps / saved_point_frequency);
-    int point_index = 0;
+    std::vector<point<vec_type>> y;
+    y.reserve(ceil(num_steps / (double) saved_point_frequency));
 
     point nth = y[0] = init;
     for (int i = 0; i < num_steps; ++ i, nth.t += step_size) {
         if (i % 1000 == 0)
-            std::cerr << "Progress " << std::fixed << std::setprecision(2)
-                      << (i / (double) num_steps) * 100 << "% " << point_index << "\r";
             fmt::print(stderr, "Progress {:.2f}% \r", (i / (double) num_steps) * 100);
 
         nth = runge_kutta_step(f, nth, step_size, a, b, c);
         if (i % saved_point_frequency == 0)
-            y[point_index ++] = nth;
+            y.push_back(nth);
     }
 
     return y;
