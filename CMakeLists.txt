@@ -40,8 +40,10 @@ endif ()
 find_package(glm REQUIRED)
 find_package(fmt REQUIRED)
 
-add_executable(implicit-runge-kutta implicit-runge-kutta.cpp)
+add_executable(implicit-runge-kutta src/implicit-runge-kutta.cpp)
+target_include_directories(implicit-runge-kutta PUBLIC src/)
 target_link_libraries(implicit-runge-kutta glm::glm fmt)
 
-add_executable(explicit-runge-kutta explicit-runge-kutta.cpp)
+add_executable(explicit-runge-kutta src/explicit-runge-kutta.cpp)
+target_include_directories(explicit-runge-kutta PUBLIC src/)
 target_link_libraries(explicit-runge-kutta glm::glm fmt)
