@@ -11,7 +11,7 @@ num_ys = len(points[0]) - 1
 
 plots = []
 
-def plot_all():
+def plot_all(save_name=None):
     _, axs = plt.subplots(len(plots))
     if len(plots) == 1:
         axs = [axs]
@@ -20,7 +20,10 @@ def plot_all():
         axs[i].plot(xs, ys)
         axs[i].title.set_text(title)
 
-    plt.show()
+    if save_name is not None:
+        plt.savefig(save_name, dpi=512)
+    else:
+        plt.show()
     plots.clear() # clear plots
 
 
@@ -29,7 +32,7 @@ for i in range(num_ys):
     ys = [ point[i + 1] for point in points ]
     plots.append((xs, ys, f"$y_{i}(t)$"))
 
-plot_all()
+plot_all(sys.argv[2] if len(sys.argv) > 2 else None)
 
 for i in range(num_ys):
     xs = [ point[i + 1] for point in points ]
@@ -37,4 +40,4 @@ for i in range(num_ys):
         ys = [ point[j + 1] for point in points ]
         plots.append((xs, ys, f"$y_{j}(y_{i})$"))
 
-plot_all()
+plot_all(sys.argv[3] if len(sys.argv) > 2 else None)
