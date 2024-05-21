@@ -1,4 +1,5 @@
-#include <cmath>
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <functional>
 #include <initializer_list>
 #include <vector>
@@ -8,7 +9,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
-
 
 template <typename underlying_linear_container>
 class proxy2d {
@@ -74,15 +74,48 @@ public:
 using dmatrix = matrix<double>;
 using dvector = std::vector<double>;
 
+
+// ------------------------------------------------------------------------------------------------------------------
+// struct any_argument { template <typename type> operator type&&() const; };
+
+// template <typename lambda_type, typename Is, typename = void>
+// struct can_accept_impl: std::false_type {};
+
+// template <typename lambda_type, std::size_t ...Is>
+// struct can_accept_impl<lambda_type, std::index_sequence<Is...>, 
+//     decltype(std::declval<lambda_type>()(((void)Is, any_argument{})...), void())>: std::true_type {};
+
+// template <typename lambda_type, std::size_t n>
+// struct can_accept: can_accept_impl<lambda_type, std::make_index_sequence<n>> {};
+
+
+// template <typename lambda_type, std::size_t max, std::size_t n, typename = void>
+// struct lambda_details_impl: lambda_details_impl<lambda_type, max, n - 1> {};
+
+// template <typename lambda_type, std::size_t max, std::size_t n>
+// struct lambda_details_impl<lambda_type, max, n, std::enable_if_t<can_accept<lambda_type, n>::value>> {
+//     static constexpr bool is_variadic = (n == max);
+//     static constexpr std::size_t argument_count = n;
+// };
+
+// template <typename lambda_type, std::size_t max = 50>
+// struct lambda_details: lambda_details_impl<lambda_type, max, max> {};
 // ------------------------------------------------------------------------------------------------------------------
 
+
+// naive central step derivative
+// auto derivative1(auto &&f, double point, double h){ 
+//     return (f(point + h) - f(point - h)) * (1.0 / (2.0 * h)); 
+// }
+
+// richardson 5-point rule
 auto gderivative(auto &&f, double x, double h){
     return (- f(x + 2. * h) + 8. * f(x + h) - 8. * f(x - h) + f(x - 2. * h)) * (1. / (12 * h));
 }
 
-template <int size>
-glm::mat<size, size, double> jacobian(auto &&f, glm::vec<size, double> point) {
-    glm::mat<size, size, double> res {};
+template <typename result_type, typename vec_type>
+result_type jacobian(auto &&f, vec_type point) {
+    result_type res {};
 
     const double step = 0.0001;
 
@@ -103,13 +136,14 @@ glm::mat<size, size, double> jacobian(auto &&f, glm::vec<size, double> point) {
 }
 
 
-template <int size>
-glm::vec<size, double> solve_newtons(auto &&f, glm::vec<size, double> init, double precision) {
+template <typename vec_type>
+vec_type solve_newtons(auto &&f, vec_type init, double precision) {
+
     auto previous = init, current = init;
 
     const int max_iter = 10000;
     for (int i = 0; i < max_iter; ++ i) {
-        auto jac = ::jacobian(f, previous);
+        auto jac = ::jacobian<glm::dmat4x4>(f, previous);
         auto inverse_jacobian = glm::inverse(jac);
         current = previous - inverse_jacobian * f(previous);
 
@@ -123,57 +157,44 @@ glm::vec<size, double> solve_newtons(auto &&f, glm::vec<size, double> init, doub
 }
 
 
+template <typename vec_type>
+struct point {
+    double t;
+    vec_type y;
+};
 
-template <int size>
-struct point { double t; glm::vec<size, double> y; };
+template <typename vec_type>
+point(double t, vec_type y) -> point<vec_type>;
 
-template <int size>
-point(double t, glm::vec<size, double> y) -> point<size>;
-
-template <int size>
-point<size> runge_kutta_step(auto &&f, point<size> nth, double step_size, dmatrix &a, dvector &b, dvector &c) {
+template <typename vec_type>
+point<vec_type> runge_kutta_step(auto &&f, point<vec_type> nth, double step_size, dmatrix &a, dvector &b, dvector &c) {
 
     assert(a.cols() == a.rows());
-    const int num_stages = a.rows();
+    const size_t num_stages = a.rows();
 
     assert(b.size() == num_stages);
     assert(c.size() == num_stages);
 
-    glm::vec<size, double> ks[num_stages];
+    vec_type ks[num_stages];
 
-    glm::vec<size, double> sum = {};
-    for (int i = 0; i < num_stages; ++ i) {
+    vec_type sum = {};
+    for (size_t i = 0; i < num_stages; ++ i) {
 
-        std::cerr << "f(" << nth.t + c[i] * step_size << ", ";
-        std::cerr << "(";
-        for (int j = 0; j < i; ++ j) {
-            if (j != 0)
-                std::cerr << " + ";
-
-            std::cerr << glm::to_string(a[i][j] * ks[j]);
-        }
-        std::cerr << "+ " << a[i][i] << "* k)";
-        std::cerr << " * " << step_size;
-        std::cerr << " + " << glm::to_string(nth.y);
-
-        std::cerr << ") == k\n";
-
-        auto k_eq = [&](auto k) -> glm::vec<size, double> {
-            glm::vec<size, double> f_y {};
+        auto k_eq = [&](auto k) -> vec_type {
+            vec_type f_y {}; // TODO: is it 0?
             for (int j = 0; j < i; ++ j)
                 f_y += a[i][j] * ks[j];
 
-            f_y += a[i][i] * k;
+            f_y += a[i][i] * k; // TODO: ?
 
             f_y *= step_size;
             f_y += nth.y;
 
-            auto k_i = ks[i] = f(nth.t + c[i] * step_size, f_y);
+            vec_type k_i = ks[i] = f(nth.t + c[i] * step_size, f_y);
             return k_i - k;
         };
 
-        auto solution = solve_newtons(k_eq, glm::vec<size, double> { 1. }, 0.000001);
-        std::cerr << glm::to_string(solution) << "\n";
+        vec_type solution = solve_newtons(k_eq, vec_type { 1. }, 0.00001);
 
         sum += b[i] * solution;
     }
@@ -181,9 +202,9 @@ point<size> runge_kutta_step(auto &&f, point<size> nth, double step_size, dmatri
     return { nth.t, sum * step_size + nth.y };
 }
 
-template <int size>
-std::vector<point<size>> runge_kutta(auto &&f, point<size> init, double step_size, double t_end,
-                                     dmatrix &a, dvector &b, dvector &c, int num_points_to_save) {
+template <typename vec_type>
+std::vector<point<vec_type>> runge_kutta(auto &&f, point<vec_type> init, double step_size, double t_end,
+                                         dmatrix &a, dvector &b, dvector &c, int num_points_to_save) {
 
     const int num_steps = (t_end - init.t) / step_size;
     assert(num_steps > 0);
@@ -191,7 +212,7 @@ std::vector<point<size>> runge_kutta(auto &&f, point<size> init, double step_siz
     const int saved_point_frequency = num_steps / num_points_to_save;
     assert(saved_point_frequency > 0);
 
-    std::vector<point<size>> y(num_steps / saved_point_frequency);
+    std::vector<point<vec_type>> y(num_steps / saved_point_frequency);
     int point_index = 0;
 
     point nth = y[0] = init;
@@ -201,7 +222,6 @@ std::vector<point<size>> runge_kutta(auto &&f, point<size> init, double step_siz
                       << (i / (double) num_steps) * 100 << "% " << point_index << "\r";
 
         nth = runge_kutta_step(f, nth, step_size, a, b, c);
-
         if (i % saved_point_frequency == 0)
             y[point_index ++] = nth;
     }
@@ -224,21 +244,26 @@ int main() {
     };
 
     dvector b = { 25/244., -49/48., 125/16., -85/12., 1/4.};
-    dvector c = {    1/4.,    3/4.,  11/20.,    1/2.,   1 };
+    dvector c = {       1/4.,        3/4.,       11/20.,      1/2., 1 };
 
 
-    point<3> init = { 150, { 1, 2, 3 } };
+    point init = { 0, glm::dvec4 { 1.76 * pow(10, -3), 0, 0, 0 } };
     auto f = [](auto t, auto y) {
-        return glm::dvec3 {
-            77.27 * (y[1] + y[0] * (1 - 8.375 * 10e-6 * y[0] - y[1])),
-            1/77.27 * (y[2] - (1 + y[0]) * y[1]),
-            0.16 * (y[0] - y[2])
+        double A = 7.89 * pow(10, -10);
+        double B = 1.1  * pow(10,  -7);
+        double C = 1.13 * pow(10,   3);
+        double M =        pow(10,   6);
+        return glm::dvec4 {
+            -A * y[0] - B * y[0] * y[2],
+             A * y[0]                   - M * C * y[1] * y[2],
+             A * y[0] - B * y[0] * y[2] - M * C * y[1] * y[2] + C * y[3],
+                        B * y[0] * y[2]                       - C * y[3]
         };
     };
 
 
     const int points_to_plot = 5000;
-    auto points = runge_kutta(f, init, .00003, 1000, a, b, c, points_to_plot);
+    auto points = runge_kutta(f, init, .00001, 1000, a, b, c, points_to_plot);
 
 
     for (auto &&point: points) {
