@@ -3,9 +3,7 @@
 
 #include <initializer_list>
 #include <vector>
-#include <iostream>
 #include <cassert>
-#include <iomanip>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -76,39 +74,6 @@ public:
 using dmatrix = matrix<double>;
 using dvector = std::vector<double>;
 
-
-// ------------------------------------------------------------------------------------------------------------------
-// struct any_argument { template <typename type> operator type&&() const; };
-
-// template <typename lambda_type, typename Is, typename = void>
-// struct can_accept_impl: std::false_type {};
-
-// template <typename lambda_type, std::size_t ...Is>
-// struct can_accept_impl<lambda_type, std::index_sequence<Is...>, 
-//     decltype(std::declval<lambda_type>()(((void)Is, any_argument{})...), void())>: std::true_type {};
-
-// template <typename lambda_type, std::size_t n>
-// struct can_accept: can_accept_impl<lambda_type, std::make_index_sequence<n>> {};
-
-
-// template <typename lambda_type, std::size_t max, std::size_t n, typename = void>
-// struct lambda_details_impl: lambda_details_impl<lambda_type, max, n - 1> {};
-
-// template <typename lambda_type, std::size_t max, std::size_t n>
-// struct lambda_details_impl<lambda_type, max, n, std::enable_if_t<can_accept<lambda_type, n>::value>> {
-//     static constexpr bool is_variadic = (n == max);
-//     static constexpr std::size_t argument_count = n;
-// };
-
-// template <typename lambda_type, std::size_t max = 50>
-// struct lambda_details: lambda_details_impl<lambda_type, max, max> {};
-// ------------------------------------------------------------------------------------------------------------------
-
-
-// naive central step derivative
-// auto derivative1(auto &&f, double point, double h){ 
-//     return (f(point + h) - f(point - h)) * (1.0 / (2.0 * h)); 
-// }
 
 // richardson 5-point rule
 auto gderivative(auto &&f, double x, double h){
