@@ -3,7 +3,7 @@ import sys
 
 file = open(sys.argv[1], "r")
 
-points = [ point.strip().split(' ') for point in file.read().strip().split('\n') ]
+points = [ point.strip().split() for point in file.read().strip().split('\n') ]
 points = [ tuple([ float(coord) for coord in point ]) for point in points ]
 
 num_ys = len(points[0]) - 1
